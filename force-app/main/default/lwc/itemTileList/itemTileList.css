@@ -1,0 +1,16 @@
+.tile-grid {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;      
+    gap: 1rem;                
+}
+
+.tile-column {
+    flex: 0 0 calc(33.333% - 1rem);  
+    min-width: 250px;      
+    display: flex;            
+}
+
+.tile-column > c-item-tile {
+    width: 100%;
+}

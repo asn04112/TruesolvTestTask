@@ -1,0 +1,9 @@
+<template>
+    <div class="tile-grid">
+        <template for:each={items} for:item="it">
+            <div class="tile-column" key={it.Id}>
+                <c-item-tile item={it} onaddtocart={handleAddToCart} onshowdetails={handleShowDetails}></c-item-tile>
+            </div>
+        </template>
+    </div>
+</template>
