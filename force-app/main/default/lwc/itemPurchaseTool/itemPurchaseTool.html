@@ -1,0 +1,14 @@
+<template>
+        <!-- Account info -->
+        <template if:true={account.data}>
+            <div class="slds-m-around_medium">
+                <p><strong>Account Name:</strong> {accountName}</p>
+                <p><strong>Account Number:</strong> {accountNumber}</p>
+                <p><strong>Industry:</strong> {industry}</p>
+            </div>
+        </template>
+        <template if:true={account.error}>
+            <p class="slds-text-color_error">Error loading account.</p>
+        </template>
+    </lightning-card>
+</template>
