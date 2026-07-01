@@ -11,12 +11,18 @@ import USER_ID from '@salesforce/user/Id';
 import getItems from '@salesforce/apex/ItemService.getItems';
 import FAMILY_FIELD from '@salesforce/schema/Item__c.Family__c';
 import TYPE_FIELD from '@salesforce/schema/Item__c.Type__c';
+import { getObjectInfo } from 'lightning/uiObjectInfoApi';
+import ITEM_OBJECT from '@salesforce/schema/Item__c';
 
 const ACCOUNT_FIELDS = [ACCOUNT_NAME_FIELD, ACCOUNT_NUMBER_FIELD, ACCOUNT_INDUSTRY_FIELD];
 
 export default class ItemPurchaseTool extends NavigationMixin(LightningElement) {
+    @track selectedFamily = '';
+@track selectedType = '';
+@track searchTerm = '';
+
     accountId;
-    isManager = false;
+    isManager = true;
     @track cartItems = [];            
     @track filteredItems = [];
     @track allItems = [];
@@ -26,22 +32,22 @@ export default class ItemPurchaseTool extends NavigationMixin(LightningElement) 
     @track showDetailsModal = false;
     @track showCreateModal = false;
     @track selectedItemId;
-    isManager = false;
 
     @wire(getRecord, { recordId: '$accountId', fields: ACCOUNT_FIELDS })
     account;
 
-    @wire(getRecord, { recordId: USER_ID, fields: [USER_ISMANAGER_FIELD] })
-    user({ data, error }) {
-        if (data) {
-            this.isManager = getFieldValue(data, USER_ISMANAGER_FIELD) || false;
-        }
-    }
+    // @wire(getRecord, { recordId: USER_ID, fields: [USER_ISMANAGER_FIELD] })
+    // user({ data, error }) {
+    //     if (data) {
+    //          this.isManager = getFieldValue(data, USER_ISMANAGER_FIELD) || false;
+    //     }
+    // }
 
     connectedCallback() {
         const urlParams = new URLSearchParams(window.location.search);
         this.accountId = urlParams.get('c__accountId') || '';
         this.refreshItems();
+        console.log("items:" + this.allItems)
 
     }
 
@@ -88,17 +94,21 @@ export default class ItemPurchaseTool extends NavigationMixin(LightningElement) 
     }
 
     async refreshItems(family, type, searchTerm) {
+        console.log("refreshing items with:", { family, type, searchTerm });
         try {
             const data = await getItems({ family: family || '', type: type || '', searchTerm: searchTerm || '' });
-            this.allItems = data;
-            this.applyFilters(family, type, searchTerm);
+            console.log("Apex returned items count: " + (data ? data.length : 'null'));
+            this.allItems = data || [];
+            this.filteredItems = [...this.allItems]; // bypass applyFilters for testing
+            console.log("filteredItems length: " + this.filteredItems.length);
         } catch (error) {
-            console.log(error.message);
+            console.error("Apex error:", error);
+            // Optionally show a toast with the error message
+            this.showToast('Error', error.body ? error.body.message : error.message, 'error');
         }
     }
 
     applyFilters(family, type, searchTerm) {
-        this.filteredItems = this.allItems;
         if (family) {
             this.filteredItems = this.filteredItems.filter(i => i.Family__c === family);
         }
@@ -113,8 +123,30 @@ export default class ItemPurchaseTool extends NavigationMixin(LightningElement) 
         }
     }
 
-    handleFilterChange(event) {
-        const { family, type, searchTerm } = event.detail;
-        this.refreshItems(family, type, searchTerm);
+handleFilterChange(event) {
+    console.log('filter change fired', event.target.name, event.detail.value);
+    if (event.target.name === 'family') {
+        this.selectedFamily = event.detail.value;
+    } else if (event.target.name === 'type') {
+        this.selectedType = event.detail.value;
     }
+    console.log('after update -> family:', this.selectedFamily, 'type:', this.selectedType);
+    this.refreshItems(this.selectedFamily, this.selectedType, this.searchTerm);
+}
+
+    openCreateModal() { this.showCreateModal = true; }
+    closeCreateModal() { this.showCreateModal = false; }
+    handleItemCreated() {
+        this.closeCreateModal();
+        this.refreshItems();
+        this.showToast('Success', 'Item created.', 'success');
+    }
+
+    showToast(title, message, variant) {
+        this.dispatchEvent(new ShowToastEvent({ title, message, variant }));
+    }
+    handleSearch(event) {
+    this.searchTerm = event.target.value;
+    this.refreshItems(this.selectedFamily, this.selectedType, this.searchTerm);
+}
 }

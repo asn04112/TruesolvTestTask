@@ -3,7 +3,7 @@
         <div class="slds-p-around_medium header-box">
                 <lightning-layout horizontal-align="spread" vertical-align="center">
                     <lightning-layout-item padding="around-small">
-                        <lightning-button label="Create Item" onclick={handleCreateItem} variant="neutral" lwc:if={isManager}></lightning-button>
+                        <lightning-button label="Create Item" onclick={openCreateModal} variant="neutral" lwc:if={isManager}></lightning-button>
                     </lightning-layout-item>
                     <lightning-layout-item padding="around-small" size="auto">
                         <span class="account-info">Account Name: {accountName}</span>
@@ -16,7 +16,7 @@
                     </lightning-layout-item>
 
                     <lightning-layout-item padding="around-small">
-                        <lightning-button label="Cart" onclick={handleCart} variant="neutral"></lightning-button>
+                        <lightning-button label="Cart" onclick={openCartModal} variant="neutral"></lightning-button>
                     </lightning-layout-item>
                 </lightning-layout>
             </div>
@@ -29,9 +29,10 @@
                     <template for:each={filteredItems} for:item="item">
                         <lightning-layout-item key={item.id} size="6" class="slds-p-around_small">
                             <div class="slds-box item-card slds-text-align_center">
-                                <h3 class="slds-text-heading_small slds-m-bottom_small">{item.name}</h3>
+                                <h3 class="slds-text-heading_small slds-m-bottom_small">{item.Name}</h3>
                                 <div class="item-image-area">
-                                    DESCRIPTION + IMG
+                                    {item.Description__c}
+                                    <img src={itemImage} class="tile-image" />
                                 </div>
                                 <div class="slds-grid slds-gutters slds-m-top_medium button-area">
                                     <lightning-layout-item size="6">
@@ -48,25 +49,23 @@
             </lightning-layout-item>
             <lightning-layout-item size="4">
                 <div class="slds-box filter-sidebar slds-p-around_medium">
-                    <h2 class="slds-text-heading_medium slds-m-bottom_medium">FILTERS</h2>
-                    <h3 class="slds-text-heading_small slds-m-bottom_x-small">Type:</h3>
-                    <div class="filter-group">
-                        <template for:each={typeOptions} for:item="type">
-                            <div key={type.id} class="slds-m-bottom_x-small filter-item">
-                                <lightning-input type="checkbox" label={type.label} value={type.value} onchange={handleFilterChange}></lightning-input>
-                            </div>
-                        </template>
-                    </div>
-                    <h3 class="slds-text-heading_small slds-m-top_medium slds-m-bottom_x-small">Family:</h3>
-                    <div class="filter-group">
-                        <template for:each={familyOptions} for:item="family">
-                            <div key={family.id} class="slds-m-bottom_x-small filter-item">
-                                <lightning-input type="checkbox" label={family.label} value={family.value} onchange={handleFilterChange}></lightning-input>
-                            </div>
-                        </template>
-                    </div>
-                </div>
+    <h2 class="slds-text-heading_medium slds-m-bottom_medium">FILTERS</h2>
+    <lightning-combobox name="family" label="Family" value={selectedFamily} 
+                        options={familyOptions} onchange={handleFilterChange}></lightning-combobox>
+    <lightning-combobox name="type" label="Type" value={selectedType} 
+                        options={typeOptions} onchange={handleFilterChange}></lightning-combobox>
+    <p>Items found: {filteredItems.length}</p>
+</div>
             </lightning-layout-item>
         </lightning-layout>
     </lightning-card>
+
+
+
+<template if:true={showCreateModal}>
+        <c-create-item-modal
+            onclose={closeCreateModal}
+            onitemcreated={handleItemCreated}
+        ></c-create-item-modal>
+    </template>
 </template>
