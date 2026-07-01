@@ -1,0 +1,37 @@
+<template>
+    <section role="dialog" class="slds-modal slds-fade-in-open">
+        <div class="slds-modal__container">
+            <header class="slds-modal__header">
+                <h2>Create Item</h2>
+                <button class="slds-button slds-button_icon slds-modal__close" title="Close" onclick={closeModal}>
+                    <lightning-icon icon-name="utility:close" alternative-text="close"></lightning-icon>
+                </button>
+            </header>
+            <div class="slds-modal__content">
+                <lightning-record-edit-form
+                    object-api-name="Item__c"
+                    onsuccess={handleSuccess}
+                    onerror={handleError}
+                >
+                    <div class="slds-grid slds-wrap slds-gutters">
+                        <div class="slds-col slds-size_1-of-2">
+                            <lightning-input-field field-name="Name" required></lightning-input-field>
+                            <lightning-input-field field-name="Description__c"></lightning-input-field>
+                            <lightning-input-field field-name="Family__c"></lightning-input-field>
+                            <lightning-input-field field-name="Type__c"></lightning-input-field>
+                        </div>
+                        <div class="slds-col slds-size_1-of-2">
+                            <lightning-input-field field-name="Price__c"></lightning-input-field>
+                            <lightning-input-field field-name="Quantity_In_Stock__c"></lightning-input-field>
+                        </div>
+                    </div>
+                    <div class="slds-m-top_medium">
+                        <lightning-button label="Save" type="submit" variant="brand"></lightning-button>
+                        <lightning-button label="Cancel" onclick={closeModal} class="slds-m-left_small"></lightning-button>
+                    </div>
+                </lightning-record-edit-form>
+            </div>
+        </div>
+    </section>
+    <div class="slds-backdrop slds-backdrop_open"></div>
+</template>

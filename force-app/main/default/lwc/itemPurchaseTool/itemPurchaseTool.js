@@ -116,11 +116,12 @@ export default class ItemPurchaseTool extends NavigationMixin(LightningElement) 
             this.filteredItems = this.filteredItems.filter(i => i.Type__c === type);
         }
         if (searchTerm) {
-            const term = searchTerm.toLowerCase();
-            this.filteredItems = this.filteredItems.filter(i =>
-                i.Name.toLowerCase().includes(term) || (i.Description__c && i.Description__c.toLowerCase().includes(term))
-            );
-        }
+        const term = searchTerm.toLowerCase();
+        this.filteredItems = this.filteredItems.filter(i =>
+            i.Name.toLowerCase().includes(term) ||
+            (i.Description__c && i.Description__c.toLowerCase().includes(term))
+        );
+    }
     }
 
 handleFilterChange(event) {
@@ -146,6 +147,7 @@ handleFilterChange(event) {
         this.dispatchEvent(new ShowToastEvent({ title, message, variant }));
     }
     handleSearch(event) {
+    console.log('handleSearch called, value:', event.target.value);
     this.searchTerm = event.target.value;
     this.refreshItems(this.selectedFamily, this.selectedType, this.searchTerm);
 }
