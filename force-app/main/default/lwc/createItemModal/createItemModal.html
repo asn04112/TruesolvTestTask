@@ -10,7 +10,7 @@
             <div class="slds-modal__content">
                 <lightning-record-edit-form
                     object-api-name="Item__c"
-                    onsuccess={handleSuccess}
+                    onsubmit={handleSubmit}
                     onerror={handleError}
                 >
                     <div class="slds-grid slds-wrap slds-gutters">
@@ -22,7 +22,7 @@
                         </div>
                         <div class="slds-col slds-size_1-of-2">
                             <lightning-input-field field-name="Price__c"></lightning-input-field>
-                            <lightning-input-field field-name="Quantity_In_Stock__c"></lightning-input-field>
+                            <lightning-input-field field-name="AvailableQuantity__c" required></lightning-input-field>
                         </div>
                     </div>
                     <div class="slds-m-top_medium">
