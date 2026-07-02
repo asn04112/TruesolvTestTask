@@ -200,7 +200,6 @@ export default class ItemPurchaseTool extends NavigationMixin(LightningElement) 
 
     async handleCheckout() {
         try {
-            // Prepare cart items for Apex
             const cartData = this.cartItems.map(ci => ({
                 itemId: ci.itemId,
                 quantity: ci.quantity,
@@ -214,10 +213,8 @@ export default class ItemPurchaseTool extends NavigationMixin(LightningElement) 
             
             this.showToast('Success', 'Purchase created!', 'success');
             this.showCartModal = false;
-            this.cartItems = []; // clear cart
+            this.cartItems = []; 
 
-            // Redirect to the Purchase record
-            // Using NavigationMixin or window.open
             this[NavigationMixin.Navigate]({
                 type: 'standard__recordPage',
                 attributes: {
@@ -226,7 +223,6 @@ export default class ItemPurchaseTool extends NavigationMixin(LightningElement) 
                     actionName: 'view'
                 }
             });
-            // Alternative: window.open('/' + purchaseId, '_self');
         } catch (error) {
             console.error('Checkout error:', error);
             console.error('Error body:', JSON.stringify(error.body));
@@ -235,7 +231,6 @@ export default class ItemPurchaseTool extends NavigationMixin(LightningElement) 
     }
     handleQuantityChange(event) {
         const { itemId, quantity } = event.detail;
-        // Find and update quantity in cartItems immutably
         this.cartItems = this.cartItems.map(ci => 
             ci.itemId === itemId ? { ...ci, quantity: quantity } : ci
         );
