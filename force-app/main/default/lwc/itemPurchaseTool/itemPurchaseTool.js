@@ -11,8 +11,7 @@ import USER_ID from '@salesforce/user/Id';
 import getItems from '@salesforce/apex/ItemService.getItems';
 import FAMILY_FIELD from '@salesforce/schema/Item__c.Family__c';
 import TYPE_FIELD from '@salesforce/schema/Item__c.Type__c';
-import { getObjectInfo } from 'lightning/uiObjectInfoApi';
-import ITEM_OBJECT from '@salesforce/schema/Item__c';
+import checkout from '@salesforce/apex/ItemService.checkout';
 
 const ACCOUNT_FIELDS = [ACCOUNT_NAME_FIELD, ACCOUNT_NUMBER_FIELD, ACCOUNT_INDUSTRY_FIELD];
 
@@ -37,12 +36,12 @@ export default class ItemPurchaseTool extends NavigationMixin(LightningElement) 
     @wire(getRecord, { recordId: '$accountId', fields: ACCOUNT_FIELDS })
     account;
 
-    // @wire(getRecord, { recordId: USER_ID, fields: [USER_ISMANAGER_FIELD] })
-    // user({ data, error }) {
-    //     if (data) {
-    //          this.isManager = getFieldValue(data, USER_ISMANAGER_FIELD) || false;
-    //     }
-    // }
+      @wire(getRecord, { recordId: USER_ID, fields: [USER_ISMANAGER_FIELD] })
+      user({ data, error }) {
+          if (data) {
+              this.isManager = getFieldValue(data, USER_ISMANAGER_FIELD) || false;
+          }
+      }
 
     connectedCallback() {
         const urlParams = new URLSearchParams(window.location.search);
@@ -74,7 +73,6 @@ export default class ItemPurchaseTool extends NavigationMixin(LightningElement) 
         }
     }
 
-    // Wire Type picklist values
     @wire(getPicklistValues, { recordTypeId: '012000000000000AAA', fieldApiName: TYPE_FIELD })
     typePicklist({ data, error }) {
         if (data) {
@@ -84,7 +82,6 @@ export default class ItemPurchaseTool extends NavigationMixin(LightningElement) 
         }
     }
 
-    // Helper to add "All" option and map values
     buildOptions(picklistValues) {
         const options = [{ label: 'All', value: '' }];
         picklistValues.forEach(plValue => {
@@ -100,7 +97,6 @@ export default class ItemPurchaseTool extends NavigationMixin(LightningElement) 
             this.filteredItems = [...this.allItems]; // bypass applyFilters for testing
         } catch (error) {
             console.error("Apex error:", error);
-            // Optionally show a toast with the error message
             this.showToast('Error', error.body ? error.body.message : error.message, 'error');
         }
     }
@@ -148,7 +144,7 @@ export default class ItemPurchaseTool extends NavigationMixin(LightningElement) 
     }
 
     handleShowDetails(event) {
-        this.selectedItem = event.detail;   // expects the whole item object
+        this.selectedItem = event.detail;  
         this.showDetailModal = true;
     }
 
@@ -157,25 +153,25 @@ export default class ItemPurchaseTool extends NavigationMixin(LightningElement) 
         this.selectedItem = null;
     }
 
-handleDetails(event) {
-    const itemId = event.currentTarget.dataset.itemId;
-    const item = this.allItems.find(i => i.Id === itemId);
-    if (item) {
-        this.selectedItem = item;
-        this.showDetailModal = true;
-    } else {
-    }
+    handleDetails(event) {
+        const itemId = event.currentTarget.dataset.itemId;
+        const item = this.allItems.find(i => i.Id === itemId);
+        if (item) {
+            this.selectedItem = item;
+            this.showDetailModal = true;
+        } else {
+        }
     }
 
     handleAdd(event) {
-    const itemId = event.currentTarget.dataset.itemId;
-    const item = this.allItems.find(i => i.Id === itemId);
-    
-    if (!item) return;
+        const itemId = event.currentTarget.dataset.itemId;
+        const item = this.allItems.find(i => i.Id === itemId);
+        
+        if (!item) return;
 
-    if (!item.AvailableQuantity__c || item.AvailableQuantity__c <= 0) {
-        this.showToast('Out of stock', `${item.Name} is currently unavailable.`, 'error');
-        return;
+        if (!item.AvailableQuantity__c || item.AvailableQuantity__c <= 0) {
+            this.showToast('Out of stock', `${item.Name} is currently unavailable.`, 'error');
+            return;
     }
 
     const existing = this.cartItems.find(ci => ci.itemId === itemId);
@@ -184,12 +180,69 @@ handleDetails(event) {
             itemId: item.Id,
             name: item.Name,
             price: item.Price__c,
-            unitCost: item.Price__c,   // captured at time of adding
+            unitCost: item.Price__c,   
             availableQuantity: item.AvailableQuantity__c,
             quantity: 1
         }];
     
 
     this.showToast('Success', `${item.Name} added to cart`, 'success');
+    }
+
+    openCartModal() {
+        this.showCartModal = true;
+    }
+
+    closeCartModal() {
+        this.showCartModal = false;
+    }
+
+
+    async handleCheckout() {
+        try {
+            // Prepare cart items for Apex
+            const cartData = this.cartItems.map(ci => ({
+                itemId: ci.itemId,
+                quantity: ci.quantity,
+                unitCost: ci.unitCost
+            }));
+            console.log('Checkout data:', JSON.stringify(cartData));
+            console.log('AccountId:', this.accountId);
+            console.log('cartData:', JSON.stringify(cartData));
+
+            const purchaseId = await checkout({ accountId: this.accountId, cartItems: cartData });
+            
+            this.showToast('Success', 'Purchase created!', 'success');
+            this.showCartModal = false;
+            this.cartItems = []; // clear cart
+
+            // Redirect to the Purchase record
+            // Using NavigationMixin or window.open
+            this[NavigationMixin.Navigate]({
+                type: 'standard__recordPage',
+                attributes: {
+                    recordId: purchaseId,
+                    objectApiName: 'Purchase__c',
+                    actionName: 'view'
+                }
+            });
+            // Alternative: window.open('/' + purchaseId, '_self');
+        } catch (error) {
+            console.error('Checkout error:', error);
+            console.error('Error body:', JSON.stringify(error.body));
+            this.showToast('Error', error.body?.message || 'Checkout failed', 'error');
+        }
+    }
+    handleQuantityChange(event) {
+        const { itemId, quantity } = event.detail;
+        // Find and update quantity in cartItems immutably
+        this.cartItems = this.cartItems.map(ci => 
+            ci.itemId === itemId ? { ...ci, quantity: quantity } : ci
+        );
+    }
+
+    handleRemoveItem(event) {
+        const { itemId } = event.detail;
+        this.cartItems = this.cartItems.filter(ci => ci.itemId !== itemId);
     }
 }

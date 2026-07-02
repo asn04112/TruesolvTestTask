@@ -27,10 +27,8 @@ export default class CartModal extends LightningElement {
         const newValue = parseInt(event.detail.value, 10);
         const ci = this.cartItems.find(i => i.itemId === itemId);
         if (!ci) return;
-
-        // Validate client-side bounds
+        
         if (isNaN(newValue) || newValue < 1) {
-            // Reset to 1, dispatch event
             this.dispatchQuantityChange(itemId, 1);
         } else if (newValue > ci.availableQuantity) {
             this.dispatchEvent(new ShowToastEvent({

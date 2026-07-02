@@ -42,8 +42,6 @@ export default class CreateItemModal extends LightningElement {
         }));
     });
 }
-
-    // You can keep handleError for any other form errors, or remove it
     handleError(event) {
         console.error('Form error:', JSON.stringify(event.detail));
         this.dispatchEvent(new ShowToastEvent({

@@ -77,4 +77,13 @@
         onclose={closeDetailModal}
     ></c-item-detail-modal>
 </template>
+<template if:true={showCartModal}>
+    <c-cart-modal
+        cart-items={cartItems}
+        onclose={closeCartModal}
+        oncheckout={handleCheckout}
+        onquantitychange={handleQuantityChange}
+        onremoveitem={handleRemoveItem}
+    ></c-cart-modal>
+</template>
 </template>
