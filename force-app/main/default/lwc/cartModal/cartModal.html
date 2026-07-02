@@ -1,0 +1,69 @@
+<template>
+    <section role="dialog" class="slds-modal slds-fade-in-open">
+        <div class="slds-modal__container">
+            <header class="slds-modal__header">
+                <h2>Your Cart</h2>
+                <button class="slds-button slds-button_icon slds-modal__close" title="Close" onclick={closeModal}>
+                    <lightning-icon icon-name="utility:close" alternative-text="close"></lightning-icon>
+                </button>
+            </header>
+            <div class="slds-modal__content slds-p-around_medium">
+                <template if:true={cartItems.length}>
+                    <table class="slds-table slds-table_cell-buffer slds-table_bordered">
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Price</th>
+                                <th>Quantity</th>
+                                <th>Subtotal</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template for:each={cartItems} for:item="ci">
+                                <tr key={ci.itemId}>
+                                    <td>{ci.name}</td>
+                                    <td>{ci.unitCost}</td>
+                                    <td>
+                                        <lightning-input type="number" 
+                                            value={ci.quantity} 
+                                            min="1" 
+                                            max={ci.availableQuantity}
+                                            onchange={handleQuantityChange}
+                                            data-item-id={ci.itemId}
+                                            label="Quantity"
+                                            variant="label-hidden">
+                                        </lightning-input>
+                                    </td>
+                                    <td>{ci.subtotal}</td>
+                                    <td>
+                                        <lightning-button-icon icon-name="utility:delete" 
+                                            variant="bare" 
+                                            onclick={handleRemove}
+                                            data-item-id={ci.itemId}
+                                            alternative-text="Remove">
+                                        </lightning-button-icon>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                    <div class="slds-text-align_right slds-m-top_medium">
+                        <strong>Grand Total: {grandTotal}</strong>
+                    </div>
+                </template>
+                <template if:false={cartItems.length}>
+                    <p>Your cart is empty.</p>
+                </template>
+            </div>
+            <footer class="slds-modal__footer">
+                <lightning-button label="Cancel" onclick={closeModal}></lightning-button>
+                <lightning-button label="Checkout" variant="brand" 
+                    onclick={checkout} 
+                    disabled={isCheckoutDisabled}>
+                </lightning-button>
+            </footer>
+        </div>
+    </section>
+    <div class="slds-backdrop slds-backdrop_open"></div>
+</template>
