@@ -18,8 +18,9 @@ const ACCOUNT_FIELDS = [ACCOUNT_NAME_FIELD, ACCOUNT_NUMBER_FIELD, ACCOUNT_INDUST
 
 export default class ItemPurchaseTool extends NavigationMixin(LightningElement) {
     @track selectedFamily = '';
-@track selectedType = '';
-@track searchTerm = '';
+    @track selectedType = '';
+    @track searchTerm = '';
+    @track selectedItem;
 
     accountId;
     isManager = true;
@@ -29,7 +30,7 @@ export default class ItemPurchaseTool extends NavigationMixin(LightningElement) 
     @track familyOptions = [];
     @track typeOptions = [];
     @track showCartModal = false;
-    @track showDetailsModal = false;
+    @track showDetailModal = false;
     @track showCreateModal = false;
     @track selectedItemId;
 
@@ -47,7 +48,6 @@ export default class ItemPurchaseTool extends NavigationMixin(LightningElement) 
         const urlParams = new URLSearchParams(window.location.search);
         this.accountId = urlParams.get('c__accountId') || '';
         this.refreshItems();
-        console.log("items:" + this.allItems)
 
     }
 
@@ -65,7 +65,7 @@ export default class ItemPurchaseTool extends NavigationMixin(LightningElement) 
         return this.cartItems.reduce((sum, ci) => sum + ci.quantity, 0);
     }
 
-@wire(getPicklistValues, { recordTypeId: '012000000000000AAA', fieldApiName: FAMILY_FIELD })
+    @wire(getPicklistValues, { recordTypeId: '012000000000000AAA', fieldApiName: FAMILY_FIELD })
     familyPicklist({ data, error }) {
         if (data) {
             this.familyOptions = this.buildOptions(data.values);
@@ -94,13 +94,10 @@ export default class ItemPurchaseTool extends NavigationMixin(LightningElement) 
     }
 
     async refreshItems(family, type, searchTerm) {
-        console.log("refreshing items with:", { family, type, searchTerm });
         try {
             const data = await getItems({ family: family || '', type: type || '', searchTerm: searchTerm || '' });
-            console.log("Apex returned items count: " + (data ? data.length : 'null'));
             this.allItems = data || [];
             this.filteredItems = [...this.allItems]; // bypass applyFilters for testing
-            console.log("filteredItems length: " + this.filteredItems.length);
         } catch (error) {
             console.error("Apex error:", error);
             // Optionally show a toast with the error message
@@ -124,16 +121,14 @@ export default class ItemPurchaseTool extends NavigationMixin(LightningElement) 
     }
     }
 
-handleFilterChange(event) {
-    console.log('filter change fired', event.target.name, event.detail.value);
-    if (event.target.name === 'family') {
-        this.selectedFamily = event.detail.value;
-    } else if (event.target.name === 'type') {
-        this.selectedType = event.detail.value;
+    handleFilterChange(event) {
+        if (event.target.name === 'family') {
+            this.selectedFamily = event.detail.value;
+        } else if (event.target.name === 'type') {
+            this.selectedType = event.detail.value;
+        }
+        this.refreshItems(this.selectedFamily, this.selectedType, this.searchTerm);
     }
-    console.log('after update -> family:', this.selectedFamily, 'type:', this.selectedType);
-    this.refreshItems(this.selectedFamily, this.selectedType, this.searchTerm);
-}
 
     openCreateModal() { this.showCreateModal = true; }
     closeCreateModal() { this.showCreateModal = false; }
@@ -146,9 +141,55 @@ handleFilterChange(event) {
     showToast(title, message, variant) {
         this.dispatchEvent(new ShowToastEvent({ title, message, variant }));
     }
+
     handleSearch(event) {
-    console.log('handleSearch called, value:', event.target.value);
     this.searchTerm = event.target.value;
     this.refreshItems(this.selectedFamily, this.selectedType, this.searchTerm);
-}
+    }
+
+    handleShowDetails(event) {
+        this.selectedItem = event.detail;   // expects the whole item object
+        this.showDetailModal = true;
+    }
+
+    closeDetailModal() {
+        this.showDetailModal = false;
+        this.selectedItem = null;
+    }
+
+handleDetails(event) {
+    const itemId = event.currentTarget.dataset.itemId;
+    const item = this.allItems.find(i => i.Id === itemId);
+    if (item) {
+        this.selectedItem = item;
+        this.showDetailModal = true;
+    } else {
+    }
+    }
+
+    handleAdd(event) {
+    const itemId = event.currentTarget.dataset.itemId;
+    const item = this.allItems.find(i => i.Id === itemId);
+    
+    if (!item) return;
+
+    if (!item.AvailableQuantity__c || item.AvailableQuantity__c <= 0) {
+        this.showToast('Out of stock', `${item.Name} is currently unavailable.`, 'error');
+        return;
+    }
+
+    const existing = this.cartItems.find(ci => ci.itemId === itemId);
+    if (!existing) 
+        this.cartItems = [...this.cartItems, {
+            itemId: item.Id,
+            name: item.Name,
+            price: item.Price__c,
+            unitCost: item.Price__c,   // captured at time of adding
+            availableQuantity: item.AvailableQuantity__c,
+            quantity: 1
+        }];
+    
+
+    this.showToast('Success', `${item.Name} added to cart`, 'success');
+    }
 }

@@ -32,14 +32,16 @@
                                 <h3 class="slds-text-heading_small slds-m-bottom_small">{item.Name}</h3>
                                 <div class="item-image-area">
                                     {item.Description__c}
-                                    <img src={itemImage} class="tile-image" />
+                                    <img src={item.Image__c} class="tile-image" />
                                 </div>
                                 <div class="slds-grid slds-gutters slds-m-top_medium button-area">
                                     <lightning-layout-item size="6">
-                                        <lightning-button label="Details" onclick={handleDetails} variant="neutral" class="slds-size_full"></lightning-button>
+                                        <lightning-button label="Details" variant="neutral" 
+                                            data-item-id={item.Id} onclick={handleDetails}>
+                                        </lightning-button>
                                     </lightning-layout-item>
                                     <lightning-layout-item size="6">
-                                        <lightning-button label="Add" onclick={handleAdd} variant="neutral" class="slds-size_full"></lightning-button>
+                                        <lightning-button label="Add" data-item-id={item.Id} onclick={handleAdd} variant="neutral" class="slds-size_full"></lightning-button>
                                     </lightning-layout-item>
                                 </div>
                             </div>
@@ -68,4 +70,11 @@
             onitemcreated={handleItemCreated}
         ></c-create-item-modal>
     </template>
+
+<template if:true={showDetailModal}>
+    <c-item-detail-modal
+        item={selectedItem}
+        onclose={closeDetailModal}
+    ></c-item-detail-modal>
+</template>
 </template>
