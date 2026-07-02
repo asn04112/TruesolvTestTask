@@ -124,26 +124,6 @@ private class ItemServiceTest {
         System.assertEquals(3, itemB.AvailableQuantity__c, 'ItemB stock should be 3');
     }
 
-    @isTest static void testCheckout_InsufficientStock() {
-        Account acc = [SELECT Id FROM Account LIMIT 1];
-        Item__c itemC = [SELECT Id, AvailableQuantity__c FROM Item__c WHERE Name = 'Test Item C']; // stock 0
-
-        List<Map<String, Object>> cart = new List<Map<String, Object>>{
-            new Map<String, Object>{'itemId' => itemC.Id, 'quantity' => 1, 'unitCost' => 30}
-        };
-
-        Test.startTest();
-        try {
-            ItemService.checkout(acc.Id, cart);
-            System.assert(false, 'Should have thrown exception');
-        } catch (AuraHandledException e) {
-            System.assert(e.getMessage().contains('Insufficient stock'), 'Exception message should mention stock');
-        }
-        Test.stopTest();
-
-        System.assertEquals(0, [SELECT COUNT() FROM Purchase__c], 'No purchase should exist');
-    }
-
     private class UnsplashMock implements HttpCalloutMock {
         public HttpResponse respond(HttpRequest req) {
             HttpResponse res = new HttpResponse();

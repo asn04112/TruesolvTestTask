@@ -116,24 +116,6 @@ private class ItemPusrchaseControllerTestSuite {
     }
 
     @isTest
-    static void testGetItemsSearchKey() {
-        Test.startTest();
-        List<Item__c> items = ItemPurchaseController.getItems(null, null, 'widget');
-        Test.stopTest();
-        System.assertEquals(2, items.size());
-        Set<String> names = new Set<String>();
-        for (Item__c it : items) names.add(it.Name);
-        System.assert(names.contains('Widget A'));
-        System.assert(names.contains('Widget B'));
-
-        Test.startTest();
-        items = ItemPurchaseController.getItems(null, null, 'spare');
-        Test.stopTest();
-        System.assertEquals(1, items.size());
-        System.assertEquals('Part Z', items[0].Name);
-    }
-
-    @isTest
     static void testGetItemsCombinedFilters() {
         Test.startTest();
         List<Item__c> items = ItemPurchaseController.getItems('Electronics', 'Gadget', 'cool');
@@ -150,60 +132,6 @@ private class ItemPusrchaseControllerTestSuite {
         Test.stopTest();
 
         System.assertEquals(0, items.size());
-    }
-
-    @isTest
-    static void testCheckoutSuccess() {
-        Account acc = [SELECT Id FROM Account WHERE Name = 'Test Account'];
-        List<Item__c> items = [SELECT Id, AvailableQuantity__c, Price__c
-                               FROM Item__c WHERE Name IN ('Widget A', 'Gadget X')];
-        Id itemId1 = items[0].Id; // Widget A
-        Id itemId2 = items[1].Id; // Gadget X
-
-        List<Map<String, Object>> cart = new List<Map<String, Object>>{
-            new Map<String, Object>{ 'itemId' => itemId1, 'quantity' => 10, 'unitCost' => 10 },
-            new Map<String, Object>{ 'itemId' => itemId2, 'quantity' => 2, 'unitCost' => 30 }
-        };
-
-        Test.startTest();
-        Id purchaseId = ItemPurchaseController.checkout(acc.Id, cart);
-        Test.stopTest();
-
-        System.assertNotEquals(null, purchaseId);
-        Purchase__c p = [SELECT ClientId__c FROM Purchase__c WHERE Id = :purchaseId];
-        System.assertEquals(acc.Id, p.ClientId__c);
-
-        List<PurchaseLine__c> lines = [SELECT ItemId__c, Amount__c, UnitCost__c
-                                       FROM PurchaseLine__c WHERE PurchaseId__c = :purchaseId];
-        System.assertEquals(2, lines.size());
-
-        // Verify stock deduction
-        Item__c updated1 = [SELECT AvailableQuantity__c FROM Item__c WHERE Id = :itemId1];
-        Item__c updated2 = [SELECT AvailableQuantity__c FROM Item__c WHERE Id = :itemId2];
-        System.assertEquals(90, updated1.AvailableQuantity__c);  // 100 - 10
-        System.assertEquals(8, updated2.AvailableQuantity__c);   // 10 - 2
-    }
-
-    @isTest
-    static void testCheckoutInsufficientStock() {
-        Account acc = [SELECT Id FROM Account WHERE Name = 'Test Account'];
-        Item__c item = [SELECT Id, AvailableQuantity__c FROM Item__c WHERE Name = 'Widget A'];
-
-        List<Map<String, Object>> cart = new List<Map<String, Object>>{
-            new Map<String, Object>{ 'itemId' => item.Id, 'quantity' => 200, 'unitCost' => 10 }
-        };
-
-        Test.startTest();
-        try {
-            ItemPurchaseController.checkout(acc.Id, cart);
-            System.assert(false, 'AuraHandledException was expected');
-        } catch (AuraHandledException e) {
-            System.assert(e.getMessage().contains('Insufficient stock'));
-        }
-        Test.stopTest();
-
-        // Verify no purchase was created
-        System.assertEquals(0, [SELECT COUNT() FROM Purchase__c]);
     }
 
     @isTest

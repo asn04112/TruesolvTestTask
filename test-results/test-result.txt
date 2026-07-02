@@ -1,0 +1,54 @@
+=== Test Results
+TEST NAME                                                           OUTCOME  MESSAGE  RUNTIME (MS)
+──────────────────────────────────────────────────────────────────  ───────  ───────  ────────────
+ItemServiceTest.testCheckout_Success                                Pass              423         
+ItemServiceTest.testCreateItem_Success                              Pass              95          
+ItemServiceTest.testGetItems_CombinedFilters                        Pass              51          
+ItemServiceTest.testGetItems_FamilyFilter                           Pass              32          
+ItemServiceTest.testGetItems_NoFilters                              Pass              36          
+ItemServiceTest.testGetItems_SearchByDescription                    Pass              41          
+ItemServiceTest.testGetItems_SearchByName                           Pass              34          
+ItemServiceTest.testGetItems_TypeFilter                             Pass              34          
+ItemPusrchaseControllerTestSuite.testCheckoutEmptyCart              Pass              122         
+ItemPusrchaseControllerTestSuite.testCheckoutMultipleSameItem       Pass              241         
+ItemPusrchaseControllerTestSuite.testGetAccountInfo                 Pass              34          
+ItemPusrchaseControllerTestSuite.testGetItemsCombinedFilters        Pass              43          
+ItemPusrchaseControllerTestSuite.testGetItemsEmptyStringsAsFilters  Pass              27          
+ItemPusrchaseControllerTestSuite.testGetItemsFilterFamily           Pass              27          
+ItemPusrchaseControllerTestSuite.testGetItemsFilterType             Pass              24          
+ItemPusrchaseControllerTestSuite.testGetItemsNoFilters              Pass              22          
+ItemPusrchaseControllerTestSuite.testGetItemsNoResults              Pass              26          
+ItemPusrchaseControllerTestSuite.testGetPicklistValues              Pass              142         
+
+
+=== Apex Code Coverage by Class
+CLASSES                 PERCENT  UNCOVERED LINES
+──────────────────────  ───────  ───────────────
+ItemPurchaseController  98%      39             
+ItemService             97%      2,67           
+UnsplashService         93%      23             
+PurchaseLineTrigger     93%      10,11          
+
+
+=== Test Setup Time by Test Class for Run 707fj00000hI5rw
+TEST SETUP METHOD NAME                  SETUP TIME
+──────────────────────────────────────  ──────────
+ItemServiceTest.setup                   586       
+ItemPusrchaseControllerTestSuite.setup  307       
+
+
+=== Test Summary
+NAME                 VALUE                                 
+───────────────────  ──────────────────────────────────────
+Outcome              Passed                                
+Tests Ran            20                                    
+Pass Rate            100%                                  
+Fail Rate            0%                                    
+Skip Rate            0%                                    
+Test Run Id          707fj00000hI5rw                       
+Test Setup Time      893 ms                                
+Test Execution Time  1454 ms                               
+Test Total Time      2347 ms                               
+Org Id               00Dfj00000SWcbYEAT                    
+Username             pendual225.13e69bfb996b@agentforce.com
+Org Wide Coverage    96%                                   
